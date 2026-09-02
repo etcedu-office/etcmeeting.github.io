@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ - ประชุมภาควิชาเทคโนฯ มมส</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Sarabun', 'Segoe UI', sans-serif; }
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6a11cb 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.login-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+  width: 100%; max-width: 450px;
+  animation: slideUp 0.6s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.login-header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  padding: 40px 30px;
+  text-align: center;
+}
+.login-header .logo {
+  width: 80px; height: 80px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.login-header h1 { font-size: 20px; margin-bottom: 8px; }
+.login-header p { font-size: 14px; opacity: 0.9; }
+.login-form { padding: 35px 30px; }
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display: block; margin-bottom: 8px;
+  font-weight: 600; color: #333; font-size: 14px;
+}
+.form-group input {
+  width: 100%; padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: #2a5298;
+  box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+.btn-login {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white; border: none;
+  border-radius: 10px;
+  font-size: 16px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(42,82,152,0.3); }
+.btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
+.alert {
+  padding: 12px 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: none;
+}
+.alert-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+.alert-success { background: #efe; color: #3c3; border: 1px solid #cfc; }
+.info-box {
+  margin-top: 20px; padding: 15px;
+  background: #f5f7fa;
+  border-radius: 10px;
+  font-size: 13px; color: #666;
+  border-left: 4px solid #2a5298;
+}
+.info-box strong { color: #2a5298; }
+.loader {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="login-container">
+  <div class="login-header">
+    <div class="logo">🎓</div>
+    <h1>ระบบการประชุมออนไลน์</h1>
+    <p>ภาควิชาเทคโนโลยีและสื่อสารการศึกษา<br>คณะศึกษาศาสตร์ มหาวิทยาลัยมหาสารคาม</p>
+  </div>
+  <form class="login-form" id="loginForm">
+    <div class="alert alert-error" id="alertBox"></div>
+    <div class="form-group">
+      <label>👤 ชื่อผู้ใช้</label>
+      <input type="text" id="username" placeholder="กรอกชื่อผู้ใช้" required>
+    </div>
+    <div class="form-group">
+      <label>🔒 รหัสผ่าน</label>
+      <input type="password" id="password" placeholder="กรอกรหัสผ่าน" required>
+    </div>
+    <button type="submit" class="btn-login" id="btnLogin">เข้าสู่ระบบ</button>
+    <div class="info-box">
+      <strong>ℹ️ ETC Meeting:</strong><br>
+        </div>
+  </form>
+</div>
+
+<script>
+// ⚠️ แก้ไข URL นี้เป็น URL ที่ได้จาก Google Apps Script
+const API_URL = 'https://script.google.com/macros/s/AKfycbwh-HwvtaHqqQHd8UFKqdU5vcTLsoX-JI2xyC8VADjQZkzjOWdv1fW5DjUCcbekYU4K/exec';
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btnLogin');
+  const alertBox = document.getElementById('alertBox');
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span>กำลังเข้าสู่ระบบ...';
+  alertBox.style.display = 'none';
+  
+  try {
+    const formData = new FormData();
+    formData.append('action', 'login');
+    formData.append('username', username);
+    formData.append('password', password);
+    
+    const res = await fetch(API_URL, { method: 'POST', body: formData });
+    const data = await res.json();
+    
+    if (data.success) {
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      alertBox.className = 'alert alert-success';
+      alertBox.textContent = '✓ เข้าสู่ระบบสำเร็จ กำลังนำทาง...';
+      alertBox.style.display = 'block';
+      setTimeout(() => {
+        if (data.user.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 800);
+    } else {
+      alertBox.className = 'alert alert-error';
+      alertBox.textContent = '✗ ' + data.message;
+      alertBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'เข้าสู่ระบบ';
+    }
+  } catch(err) {
+    alertBox.className = 'alert alert-error';
+    alertBox.textContent = '✗ เกิดข้อผิดพลาด: ' + err.message;
+    alertBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'เข้าสู่ระบบ';
+  }
+});
+
+// ถ้า login อยู่แล้ว ให้ redirect
+if (localStorage.getItem('currentUser')) {
+  const user = JSON.parse(localStorage.getItem('currentUser'));
+  window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+}
+</script>
+</body>
+</html>

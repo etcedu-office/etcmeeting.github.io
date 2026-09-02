@@ -1,0 +1,1138 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - ประชุมภาควิชาเทคโนฯ มมส</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Sarabun', 'Segoe UI', sans-serif; }
+body { background: #f5f7fa; min-height: 100vh; }
+
+.navbar {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white; padding: 15px 30px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  position: sticky; top: 0; z-index: 100;
+}
+.navbar .brand { display: flex; align-items: center; gap: 12px; }
+.navbar .brand .logo {
+  width: 45px; height: 45px; background: white;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.navbar .brand h2 { font-size: 17px; }
+.navbar .brand p { font-size: 12px; opacity: 0.9; }
+.navbar .user-info { display: flex; align-items: center; gap: 15px; }
+.btn-logout {
+  padding: 8px 16px; background: rgba(255,255,255,0.2);
+  color: white; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 14px;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 25px; }
+
+/* Sidebar + Content */
+.layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+.sidebar {
+  background: white; border-radius: 15px;
+  padding: 15px; height: fit-content;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  position: sticky; top: 90px;
+}
+.sidebar-item {
+  padding: 12px 15px; border-radius: 10px;
+  cursor: pointer; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: #555;
+  transition: all 0.3s;
+}
+.sidebar-item:hover { background: #f0f4ff; color: #2a5298; }
+.sidebar-item.active {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+}
+.main-content { min-width: 0; }
+
+/* Stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px; margin-bottom: 25px;
+}
+.stat-card {
+  background: white; padding: 18px;
+  border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  display: flex; align-items: center; gap: 12px;
+}
+.stat-card .icon {
+  width: 50px; height: 50px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.stat-card .icon.blue { background: #e3f2fd; }
+.stat-card .icon.green { background: #e8f5e9; }
+.stat-card .icon.orange { background: #fff3e0; }
+.stat-card .icon.purple { background: #f3e5f5; }
+.stat-card .icon.red { background: #ffebee; }
+.stat-card .info h3 { font-size: 24px; color: #333; }
+.stat-card .info p { font-size: 12px; color: #888; }
+
+/* Section */
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.4s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.card {
+  background: white; border-radius: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-bottom: 20px; overflow: hidden;
+}
+.card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #eee;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 10px;
+}
+.card-header h3 { font-size: 17px; color: #333; }
+.card-body { padding: 22px; }
+
+/* Table */
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  background: #f8f9fa; padding: 12px;
+  text-align: left; font-size: 13px;
+  color: #555; font-weight: 600;
+  border-bottom: 2px solid #eee;
+}
+td {
+  padding: 12px; border-bottom: 1px solid #f0f0f0;
+  font-size: 14px; color: #333;
+}
+tr:hover { background: #fafbfc; }
+
+/* Buttons */
+.btn {
+  padding: 8px 16px; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all 0.3s; display: inline-flex;
+  align-items: center; gap: 5px;
+}
+.btn-primary { background: #2a5298; color: white; }
+.btn-primary:hover { background: #1e3c72; }
+.btn-success { background: #43a047; color: white; }
+.btn-danger { background: #e53935; color: white; }
+.btn-warning { background: #fb8c00; color: white; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-group { display: flex; gap: 6px; }
+
+.badge {
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge-admin { background: #fce4ec; color: #c2185b; }
+.badge-user { background: #e3f2fd; color: #1976d2; }
+.badge-active { background: #e8f5e9; color: #388e3c; }
+.badge-inactive { background: #ffebee; color: #c62828; }
+
+/* Modal */
+.modal {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+  z-index: 1000; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal.active { display: flex; animation: fadeIn 0.3s; }
+.modal-content {
+  background: white; border-radius: 15px;
+  max-width: 600px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px; border-bottom: 1px solid #eee;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-header h3 { color: #1e3c72; }
+.modal-close {
+  background: none; border: none; font-size: 24px;
+  cursor: pointer; color: #999;
+}
+.modal-body { padding: 20px; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #333; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 12px;
+  border: 2px solid #e0e0e0; border-radius: 8px;
+  font-size: 14px; font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: #2a5298;
+}
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer {
+  padding: 15px 20px; border-top: 1px solid #eee;
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+.empty-state { text-align: center; padding: 40px 20px; color: #999; }
+.empty-state .icon { font-size: 50px; margin-bottom: 10px; }
+
+/* Search */
+.search-box {
+  padding: 10px 15px; border: 2px solid #e0e0e0;
+  border-radius: 8px; font-size: 14px;
+  min-width: 250px;
+}
+.search-box:focus { outline: none; border-color: #2a5298; }
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .navbar { flex-direction: column; gap: 10px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <div class="logo">🎓</div>
+    <div>
+      <h2>Admin Panel - ระบบการประชุม</h2>
+      <p>ภาควิชาเทคโนโลยีและสื่อสารการศึกษา • มมส</p>
+    </div>
+  </div>
+  <div class="user-info">
+    <div style="text-align:right;">
+      <div id="adminName" style="font-weight:600;font-size:14px;">Admin</div>
+      <div style="font-size:11px;opacity:0.8;">ผู้ดูแลระบบ</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">🚪 ออก</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-item active" onclick="showSection('dashboard', this)">📊 แดชบอร์ด</div>
+      <div class="sidebar-item" onclick="showSection('meetings', this)">📅 การประชุม</div>
+      <div class="sidebar-item" onclick="showSection('documents', this)">📄 เอกสาร</div>
+      <div class="sidebar-item" onclick="showSection('attendees', this)">👥 ผู้เข้าร่วม</div>
+      <div class="sidebar-item" onclick="showSection('announcements', this)">📢 ประกาศ</div>
+      <div class="sidebar-item" onclick="showSection('users', this)">👤 จัดการผู้ใช้</div>
+    </div>
+
+    <div class="main-content">
+      <!-- Dashboard -->
+      <div id="dashboard" class="section active">
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="card">
+          <div class="card-header"><h3>📊 สรุปข้อมูลระบบ</h3></div>
+          <div class="card-body" id="dashboardContent"></div>
+        </div>
+      </div>
+
+      <!-- Meetings -->
+      <div id="meetings" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>📅 จัดการการประชุม</h3>
+            <button class="btn btn-primary" onclick="openMeetingModal()">➕ เพิ่มการประชุม</button>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-box" placeholder="🔍 ค้นหาการประชุม..." onkeyup="filterTable('meetingsTable', this.value)" style="margin-bottom:15px;">
+            <div class="table-wrapper">
+              <table id="meetingsTable">
+                <thead>
+                  <tr>
+                    <th>รหัส</th><th>หัวข้อ</th><th>วันที่</th><th>เวลา</th>
+                    <th>สถานที่</th><th>สถานะ</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents -->
+      <div id="documents" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>📄 จัดการเอกสาร</h3>
+            <button class="btn btn-primary" onclick="openDocumentModal()">➕ เพิ่มเอกสาร</button>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-box" placeholder="🔍 ค้นหาเอกสาร..." onkeyup="filterTable('documentsTable', this.value)" style="margin-bottom:15px;">
+            <div class="table-wrapper">
+              <table id="documentsTable">
+                <thead>
+                  <tr>
+                    <th>รหัส</th><th>ชื่อเอกสาร</th><th>ประเภท</th>
+                    <th>ลิงก์ไฟล์</th><th>การประชุม</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendees -->
+      <div id="attendees" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>👥 จัดการผู้เข้าร่วม</h3>
+            <button class="btn btn-primary" onclick="openAttendeeModal()">➕ เพิ่มผู้เข้าร่วม</button>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-box" placeholder="🔍 ค้นหา..." onkeyup="filterTable('attendeesTable', this.value)" style="margin-bottom:15px;">
+            <div class="table-wrapper">
+              <table id="attendeesTable">
+                <thead>
+                  <tr>
+                    <th>รหัส</th><th>ชื่อ</th><th>การประชุม</th>
+                    <th>สถานะ</th><th>วันที่ตอบรับ</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div id="announcements" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>📢 จัดการประกาศ</h3>
+            <button class="btn btn-primary" onclick="openAnnouncementModal()">➕ เพิ่มประกาศ</button>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-box" placeholder="🔍 ค้นหา..." onkeyup="filterTable('announcementsTable', this.value)" style="margin-bottom:15px;">
+            <div class="table-wrapper">
+              <table id="announcementsTable">
+                <thead>
+                  <tr>
+                    <th>รหัส</th><th>หัวข้อ</th><th>เนื้อหา</th>
+                    <th>ความสำคัญ</th><th>วันที่</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div id="users" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>👤 จัดการผู้ใช้</h3>
+            <button class="btn btn-primary" onclick="openUserModal()">➕ เพิ่มผู้ใช้</button>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-box" placeholder="🔍 ค้นหาผู้ใช้..." onkeyup="filterTable('usersTable', this.value)" style="margin-bottom:15px;">
+            <div class="table-wrapper">
+              <table id="usersTable">
+                <thead>
+                  <tr>
+                    <th>รหัส</th><th>Username</th><th>ชื่อ-นามสกุล</th>
+                    <th>อีเมล</th><th>สิทธิ์</th><th>สถานะ</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="modal" id="meetingModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="meetingModalTitle">เพิ่มการประชุม</h3>
+      <button class="modal-close" onclick="closeModal('meetingModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="meetingID">
+      <div class="form-group">
+        <label>หัวข้อการประชุม *</label>
+        <input type="text" id="mTitle" required>
+      </div>
+      <div class="form-group">
+        <label>รายละเอียด</label>
+        <textarea id="mDescription"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>วันที่ *</label>
+          <input type="date" id="mDate" required>
+        </div>
+        <div class="form-group">
+          <label>ประเภท</label>
+          <select id="mType">
+            <option value="regular">ประชุมประจำ</option>
+            <option value="special">ประชุมพิเศษ</option>
+            <option value="workshop">อบรมเชิงปฏิบัติการ</option>
+            <option value="seminar">สัมมนา</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>เวลาเริ่ม *</label>
+          <input type="time" id="mStartTime" required>
+        </div>
+        <div class="form-group">
+          <label>เวลาสิ้นสุด *</label>
+          <input type="time" id="mEndTime" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>สถานที่</label>
+        <input type="text" id="mLocation" placeholder="เช่น ห้องประชุม 301">
+      </div>
+      <div class="form-group">
+        <label>ผู้จัด</label>
+        <input type="text" id="mOrganizer">
+      </div>
+      <div class="form-group">
+        <label>สถานะ</label>
+        <select id="mStatus">
+          <option value="scheduled">ตามกำหนด</option>
+          <option value="completed">เรียบร้อย</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('meetingModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMeeting()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Document Modal -->
+<div class="modal" id="documentModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="documentModalTitle">เพิ่มเอกสาร</h3>
+      <button class="modal-close" onclick="closeModal('documentModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="docID">
+      <div class="form-group">
+        <label>การประชุม *</label>
+        <select id="dMeetingID" required></select>
+      </div>
+      <div class="form-group">
+        <label>ชื่อเอกสาร *</label>
+        <input type="text" id="dDocName" required>
+      </div>
+      <div class="form-group">
+        <label>ประเภท</label>
+        <select id="dDocType">
+          <option value="agenda">วาระการประชุม</option>
+          <option value="minutes">รายงานการประชุม</option>
+          <option value="presentation">สไลด์นำเสนอ</option>
+          <option value="attachment">เอกสารแนบ</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>🔗 ลิงก์ไฟล์ (Google Drive, Dropbox, etc.) *</label>
+        <input type="url" id="dFileLink" placeholder="https://drive.google.com/..." required>
+        <small style="color:#888;font-size:12px;margin-top:5px;display:block;">
+          💡 อัปโหลดไฟล์ไปที่ Google Drive แล้วคัดลอกลิงก์มาวาง (ตั้งค่าเป็น "Anyone with the link")
+        </small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('documentModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveDocument()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendee Modal -->
+<div class="modal" id="attendeeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="attendeeModalTitle">เพิ่มผู้เข้าร่วม</h3>
+      <button class="modal-close" onclick="closeModal('attendeeModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="attID">
+      <div class="form-group">
+        <label>การประชุม *</label>
+        <select id="aMeetingID" required></select>
+      </div>
+      <div class="form-group">
+        <label>ชื่อ-นามสกุล *</label>
+        <input type="text" id="aFullname" required>
+      </div>
+      <div class="form-group">
+        <label>สถานะ</label>
+        <select id="aStatus">
+          <option value="pending">รอตอบรับ</option>
+          <option value="confirmed">ตอบรับแล้ว</option>
+          <option value="absent">ขาด</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('attendeeModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveAttendee()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Announcement Modal -->
+<div class="modal" id="announcementModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="announcementModalTitle">เพิ่มประกาศ</h3>
+      <button class="modal-close" onclick="closeModal('announcementModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="anID">
+      <div class="form-group">
+        <label>หัวข้อ *</label>
+        <input type="text" id="anTitle" required>
+      </div>
+      <div class="form-group">
+        <label>เนื้อหา *</label>
+        <textarea id="anContent" rows="5" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>ความสำคัญ</label>
+        <select id="anPriority">
+          <option value="normal">ปกติ</option>
+          <option value="high">สำคัญ</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('announcementModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveAnnouncement()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal" id="userModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="userModalTitle">เพิ่มผู้ใช้</h3>
+      <button class="modal-close" onclick="closeModal('userModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uID">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Username *</label>
+          <input type="text" id="uUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="text" id="uPassword" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ชื่อ-นามสกุล *</label>
+        <input type="text" id="uFullname" required>
+      </div>
+      <div class="form-group">
+        <label>อีเมล</label>
+        <input type="email" id="uEmail">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>สิทธิ์</label>
+          <select id="uRole">
+            <option value="user">ผู้ใช้</option>
+            <option value="admin">ผู้ดูแล</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>สถานะ</label>
+          <select id="uStatus">
+            <option value="active">ใช้งาน</option>
+            <option value="inactive">ระงับ</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>หน่วยงาน</label>
+        <input type="text" id="uDepartment" value="เทคโนโลยีและสื่อสารการศึกษา">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal('userModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveUser()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwh-HwvtaHqqQHd8UFKqdU5vcTLsoX-JI2xyC8VADjQZkzjOWdv1fW5DjUCcbekYU4K/exec';
+let currentUser = null;
+let allMeetings = [], allUsers = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  const stored = localStorage.getItem('currentUser');
+  if (!stored) { window.location.href = 'index.html'; return; }
+  currentUser = JSON.parse(stored);
+  if (currentUser.role !== 'admin') {
+    alert('⛔ ไม่มีสิทธิ์เข้าถึงหน้า Admin');
+    window.location.href = 'dashboard.html';
+    return;
+  }
+  document.getElementById('adminName').textContent = currentUser.fullname;
+  loadDashboard();
+});
+
+function logout() {
+  if (confirm('ต้องการออกจากระบบ?')) {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
+  }
+}
+
+async function apiCall(action, params = {}) {
+  const formData = new FormData();
+  formData.append('action', action);
+  Object.keys(params).forEach(k => formData.append(k, params[k]));
+  const res = await fetch(API_URL, { method: 'POST', body: formData });
+  return await res.json();
+}
+
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  
+  if (id === 'dashboard') loadDashboard();
+  else if (id === 'meetings') loadMeetings();
+  else if (id === 'documents') loadDocuments();
+  else if (id === 'attendees') loadAttendees();
+  else if (id === 'announcements') loadAnnouncements();
+  else if (id === 'users') loadUsers();
+}
+
+async function loadDashboard() {
+  const res = await apiCall('getStats');
+  if (!res.success) return;
+  const d = res.data;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="icon blue">📅</div><div class="info"><h3>${d.totalMeetings}</h3><p>การประชุมทั้งหมด</p></div></div>
+    <div class="stat-card"><div class="icon green">📆</div><div class="info"><h3>${d.upcomingMeetings}</h3><p>กำลังจะถึง</p></div></div>
+    <div class="stat-card"><div class="icon orange">📄</div><div class="info"><h3>${d.totalDocuments}</h3><p>เอกสาร</p></div></div>
+    <div class="stat-card"><div class="icon purple">👥</div><div class="info"><h3>${d.totalAttendees}</h3><p>ผู้เข้าร่วม</p></div></div>
+    <div class="stat-card"><div class="icon red">👤</div><div class="info"><h3>${d.totalUsers}</h3><p>ผู้ใช้</p></div></div>
+    <div class="stat-card"><div class="icon green">✓</div><div class="info"><h3>${d.confirmedAttendees}</h3><p>ตอบรับแล้ว</p></div></div>
+  `;
+  document.getElementById('dashboardContent').innerHTML = `
+    <p style="color:#666;line-height:1.8;">
+      🎯 ยินดีต้อนรับสู่ <strong>Admin Panel</strong> ของระบบการประชุมภาควิชาเทคโนโลยีและสื่อสารการศึกษา<br>
+      📊 ระบบมี <strong>${d.totalMeetings}</strong> การประชุม, <strong>${d.totalDocuments}</strong> เอกสาร, 
+      <strong>${d.totalUsers}</strong> ผู้ใช้งาน<br>
+      🚀 ใช้เมนูด้านซ้ายเพื่อจัดการข้อมูลต่างๆ
+    </p>
+  `;
+}
+
+// ==================== MEETINGS ====================
+async function loadMeetings() {
+  const res = await apiCall('getMeetings');
+  if (!res.success) return;
+  allMeetings = res.data;
+  const tbody = document.querySelector('#meetingsTable tbody');
+  if (allMeetings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#999;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allMeetings.map(m => `
+    <tr>
+      <td><code>${m.meetingID}</code></td>
+      <td><strong>${escapeHtml(m.title)}</strong></td>
+      <td>${m.date}</td>
+      <td>${m.startTime}-${m.endTime}</td>
+      <td>${escapeHtml(m.location || '-')}</td>
+      <td><span class="badge badge-${m.status === 'scheduled' ? 'user' : m.status === 'completed' ? 'active' : 'inactive'}">${statusText(m.status)}</span></td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="editMeeting('${m.meetingID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${m.meetingID}')">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openMeetingModal() {
+  document.getElementById('meetingModalTitle').textContent = 'เพิ่มการประชุม';
+  document.getElementById('meetingID').value = '';
+  ['mTitle','mDescription','mDate','mStartTime','mEndTime','mLocation','mOrganizer'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mType').value = 'regular';
+  document.getElementById('mStatus').value = 'scheduled';
+  document.getElementById('meetingModal').classList.add('active');
+}
+
+function editMeeting(id) {
+  const m = allMeetings.find(x => x.meetingID === id);
+  if (!m) return;
+  document.getElementById('meetingModalTitle').textContent = 'แก้ไขการประชุม';
+  document.getElementById('meetingID').value = m.meetingID;
+  document.getElementById('mTitle').value = m.title;
+  document.getElementById('mDescription').value = m.description;
+  document.getElementById('mDate').value = m.date;
+  document.getElementById('mStartTime').value = m.startTime;
+  document.getElementById('mEndTime').value = m.endTime;
+  document.getElementById('mLocation').value = m.location;
+  document.getElementById('mType').value = m.type;
+  document.getElementById('mOrganizer').value = m.organizer;
+  document.getElementById('mStatus').value = m.status;
+  document.getElementById('meetingModal').classList.add('active');
+}
+
+async function saveMeeting() {
+  const id = document.getElementById('meetingID').value;
+  const data = {
+    title: document.getElementById('mTitle').value,
+    description: document.getElementById('mDescription').value,
+    date: document.getElementById('mDate').value,
+    startTime: document.getElementById('mStartTime').value,
+    endTime: document.getElementById('mEndTime').value,
+    location: document.getElementById('mLocation').value,
+    type: document.getElementById('mType').value,
+    organizer: document.getElementById('mOrganizer').value,
+    status: document.getElementById('mStatus').value
+  };
+  if (!data.title || !data.date || !data.startTime || !data.endTime) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  let res;
+  if (id) {
+    data.meetingID = id;
+    res = await apiCall('updateMeeting', data);
+  } else {
+    res = await apiCall('createMeeting', data);
+  }
+  if (res.success) {
+    alert('✓ ' + res.message);
+    closeModal('meetingModal');
+    loadMeetings();
+  } else {
+    alert('✗ ' + res.message);
+  }
+}
+
+async function deleteMeeting(id) {
+  if (!confirm('ต้องการลบการประชุมนี้? (เอกสารและผู้เข้าร่วมที่เกี่ยวข้องจะถูกลบด้วย)')) return;
+  const res = await apiCall('deleteMeeting', { meetingID: id });
+  alert(res.success ? '✓ ลบสำเร็จ' : '✗ ' + res.message);
+  if (res.success) loadMeetings();
+}
+
+// ==================== DOCUMENTS ====================
+async function loadDocuments() {
+  const res = await apiCall('getDocuments');
+  const meetRes = await apiCall('getMeetings');
+  if (!res.success) return;
+  const docs = res.data;
+  const meetings = meetRes.success ? meetRes.data : [];
+  const tbody = document.querySelector('#documentsTable tbody');
+  if (docs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#999;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = docs.map(d => {
+    const m = meetings.find(x => x.meetingID === d.meetingID);
+    return `
+    <tr>
+      <td><code>${d.docID}</code></td>
+      <td><strong>${escapeHtml(d.docName)}</strong></td>
+      <td>${d.docType}</td>
+      <td><a href="${d.fileLink}" target="_blank" style="color:#2a5298;">🔗 เปิดลิงก์</a></td>
+      <td>${m ? escapeHtml(m.title).substring(0,30)+'...' : '-'}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="editDocument('${d.docID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDocument('${d.docID}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function openDocumentModal() {
+  document.getElementById('documentModalTitle').textContent = 'เพิ่มเอกสาร';
+  document.getElementById('docID').value = '';
+  document.getElementById('dDocName').value = '';
+  document.getElementById('dFileLink').value = '';
+  document.getElementById('dDocType').value = 'attachment';
+  
+  const meetRes = await apiCall('getMeetings');
+  const meetings = meetRes.success ? meetRes.data : [];
+  document.getElementById('dMeetingID').innerHTML = meetings.map(m => 
+    `<option value="${m.meetingID}">${m.date} - ${escapeHtml(m.title)}</option>`
+  ).join('');
+  document.getElementById('documentModal').classList.add('active');
+}
+
+async function editDocument(id) {
+  const res = await apiCall('getDocuments');
+  const meetRes = await apiCall('getMeetings');
+  const docs = res.success ? res.data : [];
+  const meetings = meetRes.success ? meetRes.data : [];
+  const d = docs.find(x => x.docID === id);
+  if (!d) return;
+  document.getElementById('documentModalTitle').textContent = 'แก้ไขเอกสาร';
+  document.getElementById('docID').value = d.docID;
+  document.getElementById('dDocName').value = d.docName;
+  document.getElementById('dDocType').value = d.docType;
+  document.getElementById('dFileLink').value = d.fileLink;
+  document.getElementById('dMeetingID').innerHTML = meetings.map(m => 
+    `<option value="${m.meetingID}" ${m.meetingID === d.meetingID ? 'selected' : ''}>${m.date} - ${escapeHtml(m.title)}</option>`
+  ).join('');
+  document.getElementById('documentModal').classList.add('active');
+}
+
+async function saveDocument() {
+  const id = document.getElementById('docID').value;
+  const data = {
+    meetingID: document.getElementById('dMeetingID').value,
+    docName: document.getElementById('dDocName').value,
+    docType: document.getElementById('dDocType').value,
+    fileLink: document.getElementById('dFileLink').value,
+    uploadedBy: currentUser.fullname
+  };
+  if (!data.meetingID || !data.docName || !data.fileLink) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  let res;
+  if (id) {
+    data.docID = id;
+    res = await apiCall('updateDocument', data);
+  } else {
+    res = await apiCall('createDocument', data);
+  }
+  if (res.success) {
+    alert('✓ ' + res.message);
+    closeModal('documentModal');
+    loadDocuments();
+  } else alert('✗ ' + res.message);
+}
+
+async function deleteDocument(id) {
+  if (!confirm('ต้องการลบเอกสารนี้?')) return;
+  const res = await apiCall('deleteDocument', { docID: id });
+  alert(res.success ? '✓ ลบสำเร็จ' : '✗ ' + res.message);
+  if (res.success) loadDocuments();
+}
+
+// ==================== ATTENDEES ====================
+async function loadAttendees() {
+  const res = await apiCall('getAttendees');
+  const meetRes = await apiCall('getMeetings');
+  if (!res.success) return;
+  const atts = res.data;
+  const meetings = meetRes.success ? meetRes.data : [];
+  const tbody = document.querySelector('#attendeesTable tbody');
+  if (atts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#999;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = atts.map(a => {
+    const m = meetings.find(x => x.meetingID === a.meetingID);
+    return `
+    <tr>
+      <td><code>${a.attendeeID}</code></td>
+      <td>${escapeHtml(a.fullname)}</td>
+      <td>${m ? escapeHtml(m.title).substring(0,30)+'...' : '-'}</td>
+      <td><span class="badge badge-${a.status === 'confirmed' ? 'active' : a.status === 'pending' ? 'user' : 'inactive'}">${a.status}</span></td>
+      <td>${a.rsvpDate || '-'}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="editAttendee('${a.attendeeID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAttendee('${a.attendeeID}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function openAttendeeModal() {
+  document.getElementById('attendeeModalTitle').textContent = 'เพิ่มผู้เข้าร่วม';
+  document.getElementById('attID').value = '';
+  document.getElementById('aFullname').value = '';
+  document.getElementById('aStatus').value = 'pending';
+  const meetRes = await apiCall('getMeetings');
+  const meetings = meetRes.success ? meetRes.data : [];
+  document.getElementById('aMeetingID').innerHTML = meetings.map(m => 
+    `<option value="${m.meetingID}">${m.date} - ${escapeHtml(m.title)}</option>`
+  ).join('');
+  document.getElementById('attendeeModal').classList.add('active');
+}
+
+async function editAttendee(id) {
+  const res = await apiCall('getAttendees');
+  const meetRes = await apiCall('getMeetings');
+  const atts = res.success ? res.data : [];
+  const meetings = meetRes.success ? meetRes.data : [];
+  const a = atts.find(x => x.attendeeID === id);
+  if (!a) return;
+  document.getElementById('attendeeModalTitle').textContent = 'แก้ไขผู้เข้าร่วม';
+  document.getElementById('attID').value = a.attendeeID;
+  document.getElementById('aFullname').value = a.fullname;
+  document.getElementById('aStatus').value = a.status;
+  document.getElementById('aMeetingID').innerHTML = meetings.map(m => 
+    `<option value="${m.meetingID}" ${m.meetingID === a.meetingID ? 'selected' : ''}>${m.date} - ${escapeHtml(m.title)}</option>`
+  ).join('');
+  document.getElementById('attendeeModal').classList.add('active');
+}
+
+async function saveAttendee() {
+  const id = document.getElementById('attID').value;
+  const data = {
+    meetingID: document.getElementById('aMeetingID').value,
+    fullname: document.getElementById('aFullname').value,
+    status: document.getElementById('aStatus').value
+  };
+  if (!data.meetingID || !data.fullname) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  let res;
+  if (id) {
+    data.attendeeID = id;
+    res = await apiCall('updateAttendee', data);
+  } else {
+    data.userID = '';
+    res = await apiCall('createAttendee', data);
+  }
+  if (res.success) {
+    alert('✓ ' + res.message);
+    closeModal('attendeeModal');
+    loadAttendees();
+  } else alert('✗ ' + res.message);
+}
+
+async function deleteAttendee(id) {
+  if (!confirm('ต้องการลบผู้เข้าร่วมนี้?')) return;
+  const res = await apiCall('deleteAttendee', { attendeeID: id });
+  alert(res.success ? '✓ ลบสำเร็จ' : '✗ ' + res.message);
+  if (res.success) loadAttendees();
+}
+
+// ==================== ANNOUNCEMENTS ====================
+async function loadAnnouncements() {
+  const res = await apiCall('getAnnouncements');
+  if (!res.success) return;
+  const anns = res.data;
+  const tbody = document.querySelector('#announcementsTable tbody');
+  if (anns.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#999;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = anns.map(a => `
+    <tr>
+      <td><code>${a.announceID}</code></td>
+      <td><strong>${escapeHtml(a.title)}</strong></td>
+      <td>${escapeHtml(a.content).substring(0,50)}${a.content.length > 50 ? '...' : ''}</td>
+      <td><span class="badge badge-${a.priority === 'high' ? 'inactive' : 'user'}">${a.priority === 'high' ? '🔴 สำคัญ' : 'ปกติ'}</span></td>
+      <td>${a.createdAt}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="editAnnouncement('${a.announceID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.announceID}')">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAnnouncementModal() {
+  document.getElementById('announcementModalTitle').textContent = 'เพิ่มประกาศ';
+  document.getElementById('anID').value = '';
+  document.getElementById('anTitle').value = '';
+  document.getElementById('anContent').value = '';
+  document.getElementById('anPriority').value = 'normal';
+  document.getElementById('announcementModal').classList.add('active');
+}
+
+function editAnnouncement(id) {
+  apiCall('getAnnouncements').then(res => {
+    if (!res.success) return;
+    const a = res.data.find(x => x.announceID === id);
+    if (!a) return;
+    document.getElementById('announcementModalTitle').textContent = 'แก้ไขประกาศ';
+    document.getElementById('anID').value = a.announceID;
+    document.getElementById('anTitle').value = a.title;
+    document.getElementById('anContent').value = a.content;
+    document.getElementById('anPriority').value = a.priority;
+    document.getElementById('announcementModal').classList.add('active');
+  });
+}
+
+async function saveAnnouncement() {
+  const id = document.getElementById('anID').value;
+  const data = {
+    title: document.getElementById('anTitle').value,
+    content: document.getElementById('anContent').value,
+    priority: document.getElementById('anPriority').value,
+    postedBy: currentUser.fullname
+  };
+  if (!data.title || !data.content) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  let res;
+  if (id) {
+    data.announceID = id;
+    res = await apiCall('updateAnnouncement', data);
+  } else {
+    res = await apiCall('createAnnouncement', data);
+  }
+  if (res.success) {
+    alert('✓ ' + res.message);
+    closeModal('announcementModal');
+    loadAnnouncements();
+  } else alert('✗ ' + res.message);
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('ต้องการลบประกาศนี้?')) return;
+  const res = await apiCall('deleteAnnouncement', { announceID: id });
+  alert(res.success ? '✓ ลบสำเร็จ' : '✗ ' + res.message);
+  if (res.success) loadAnnouncements();
+}
+
+// ==================== USERS ====================
+async function loadUsers() {
+  const res = await apiCall('getUsers');
+  if (!res.success) return;
+  allUsers = res.data;
+  const tbody = document.querySelector('#usersTable tbody');
+  if (allUsers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#999;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allUsers.map(u => `
+    <tr>
+      <td><code>${u.userID}</code></td>
+      <td><strong>${escapeHtml(u.username)}</strong></td>
+      <td>${escapeHtml(u.fullname)}</td>
+      <td>${escapeHtml(u.email || '-')}</td>
+      <td><span class="badge badge-${u.role === 'admin' ? 'admin' : 'user'}">${u.role === 'admin' ? '👑 Admin' : '👤 User'}</span></td>
+      <td><span class="badge badge-${u.status === 'active' ? 'active' : 'inactive'}">${u.status === 'active' ? '✓ ใช้งาน' : '✗ ระงับ'}</span></td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-warning btn-sm" onclick="editUser('${u.userID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.userID}')" ${u.username === 'admin' ? 'disabled style="opacity:0.5;"' : ''}>🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openUserModal() {
+  document.getElementById('userModalTitle').textContent = 'เพิ่มผู้ใช้';
+  document.getElementById('uID').value = '';
+  ['uUsername','uPassword','uFullname','uEmail'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('uRole').value = 'user';
+  document.getElementById('uStatus').value = 'active';
+  document.getElementById('uDepartment').value = 'เทคโนโลยีและสื่อสารการศึกษา';
+  document.getElementById('userModal').classList.add('active');
+}
+
+function editUser(id) {
+  const u = allUsers.find(x => x.userID === id);
+  if (!u) return;
+  document.getElementById('userModalTitle').textContent = 'แก้ไขผู้ใช้';
+  document.getElementById('uID').value = u.userID;
+  document.getElementById('uUsername').value = u.username;
+  document.getElementById('uPassword').value = u.password;
+  document.getElementById('uFullname').value = u.fullname;
+  document.getElementById('uEmail').value = u.email;
+  document.getElementById('uRole').value = u.role;
+  document.getElementById('uStatus').value = u.status;
+  document.getElementById('uDepartment').value = u.department;
+  document.getElementById('userModal').classList.add('active');
+}
+
+async function saveUser() {
+  const id = document.getElementById('uID').value;
+  const data = {
+    username: document.getElementById('uUsername').value,
+    password: document.getElementById('uPassword').value,
+    fullname: document.getElementById('uFullname').value,
+    email: document.getElementById('uEmail').value,
+    role: document.getElementById('uRole').value,
+    status: document.getElementById('uStatus').value,
+    department: document.getElementById('uDepartment').value
+  };
+  if (!data.username || !data.password || !data.fullname) {
+    alert('กรุณากรอกข้อมูลให้ครบ'); return;
+  }
+  let res;
+  if (id) {
+    data.userID = id;
+    res = await apiCall('updateUser', data);
+  } else {
+    res = await apiCall('createUser', data);
+  }
+  if (res.success) {
+    alert('✓ ' + res.message);
+    closeModal('userModal');
+    loadUsers();
+  } else alert('✗ ' + res.message);
+}
+
+async function deleteUser(id) {
+  const u = allUsers.find(x => x.userID === id);
+  if (u && u.username === 'admin') {
+    alert('⛔ ไม่สามารถลบ Admin หลักได้'); return;
+  }
+  if (!confirm('ต้องการลบผู้ใช้นี้?')) return;
+  const res = await apiCall('deleteUser', { userID: id });
+  alert(res.success ? '✓ ลบสำเร็จ' : '✗ ' + res.message);
+  if (res.success) loadUsers();
+}
+
+// ==================== UTILS ====================
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function statusText(s) {
+  return { scheduled: '📅 ตามกำหนด', completed: '✓ เรียบร้อย', cancelled: '✗ ยกเลิก' }[s] || s;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function filterTable(tableId, query) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  const q = query.toLowerCase();
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
